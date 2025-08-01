@@ -21,6 +21,7 @@ jobs:
           update: true
           install: |
             base-devel
+            rsync
             mingw-w64-ucrt-x86_64-binutils
             mingw-w64-ucrt-x86_64-libadwaita
             mingw-w64-ucrt-x86_64-gtk4
@@ -92,10 +93,12 @@ jobs:
 
           mkdir -p staging/share/glib-2.0/schemas
           cp -r /ucrt64/share/glib-2.0/schemas/* staging/share/glib-2.0/schemas/
-        
-          mv -r staging/msys64/ucrt64/* staging/
 
-          rm -rd staging/msys64
+          glib-compile-schemas staging/share/glib-2.0/schemas/
+        
+          rsync -a staging/msys64/ucrt64/ staging/
+
+          rm -rfd staging/msys64
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
