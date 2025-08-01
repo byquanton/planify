@@ -2,44 +2,102 @@ on:
   push:
     branches: [experiment/windows-build]
   pull_request:
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-name: Windows Build (Experimental)
-jobs:
-    build:
-        runs-on: windows-2025
-        steps:
-            - name: Setup MSYS2
-              uses: msys2/setup-msys2@v2
-              with:
-                msystem: UCRT64
-                release: false
-                update: true
-                install: |
-                  base-devel
-                  mingw-w64-ucrt-x86_64-binutils
-                  mingw-w64-ucrt-x86_64-libadwaita
-                  mingw-w64-ucrt-x86_64-gtk4
-                  mingw-w64-ucrt-x86_64-gtksourceview5
-                  mingw-w64-ucrt-x86_64-gobject-introspection
-                  mingw-w64-ucrt-x86_64-vala
-                  mingw-w64-ucrt-x86_64-granite7
-                  mingw-w64-ucrt-x86_64-libsoup3
-                  mingw-w64-ucrt-x86_64-libsecret
-                  mingw-w64-ucrt-x86_64-desktop-file-utils
-                  mingw-w64-ucrt-x86_64-meson
-                  mingw-w64-ucrt-x86_64-ninja
-            - name: Configure Git for LF line endings
-              run: |
-                  git config --global core.autocrlf input
-            - name: Checkout
-              uses: actions/checkout@v4
-            - name: Build and install custom libical with glib
-              shell: msys2 {0}
-              run: |
-                cd build-windows/libical-with-glib
-                makepkg-mingw --cleanbuild --syncdeps --force --noconfirm
-                pacman -U *.pkg.tar.zst
-            
 
+name: Windows Build (Experimental)
+
+jobs:
+  build:
+    runs-on: windows-2025
+    steps:
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          release: false
+          update: true
+          install: |
+            base-devel
+            mingw-w64-ucrt-x86_64-binutils
+            mingw-w64-ucrt-x86_64-libadwaita
+            mingw-w64-ucrt-x86_64-gtk4
+            mingw-w64-ucrt-x86_64-gtksourceview5
+            mingw-w64-ucrt-x86_64-gobject-introspection
+            mingw-w64-ucrt-x86_64-gxml
+            mingw-w64-ucrt-x86_64-vala
+            mingw-w64-ucrt-x86_64-granite7
+            mingw-w64-ucrt-x86_64-libsoup3
+            mingw-w64-ucrt-x86_64-libsecret
+            mingw-w64-ucrt-x86_64-desktop-file-utils
+            mingw-w64-ucrt-x86_64-meson
+            mingw-w64-ucrt-x86_64-ninja
+
+      - name: Configure Git for LF line endings
+        run: |
+          git config --global core.autocrlf input
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build custom libical with glib
+        shell: msys2 {0}
+        run: |
+          cd build-windows/libical-with-glib
+          makepkg-mingw --cleanbuild --syncdeps --force --noconfirm
+
+      - name: Install libical
+        shell: msys2 {0}
+        run: |
+          cd build-windows/libical-with-glib
+          for pkg in *.pkg.tar.zst; do
+            echo "Installing $pkg..."
+            pacman -U --noconfirm "$pkg"
+          done
+
+      - name: Configure Meson
+        shell: msys2 {0}
+        run: |
+          meson setup builddir --buildtype=release
+
+      - name: Build with Ninja
+        shell: msys2 {0}
+        run: |
+          ninja -C builddir
+
+      - name: Install to staging directory
+        shell: msys2 {0}
+        run: |
+          DESTDIR="$PWD/staging" ninja -C builddir install
+
+      - name: Bundle runtime DLLs and dependencies
+        shell: msys2 {0}
+        run: |
+          pacman -S --noconfirm mingw-w64-ucrt-x86_64-gobject-introspection-runtime
+
+          mkdir -p staging/bin
+          cp /ucrt64/bin/*.dll staging/bin/
+          cp /ucrt64/bin/gspawn-win64-helper*.exe staging/bin/
+          cp /ucrt64/bin/gtk4-update-icon-cache.exe staging/bin/
+
+          if [ -d "/ucrt64/lib/gdk-pixbuf-2.0" ]; then
+            mkdir -p staging/lib/gdk-pixbuf-2.0
+            cp -r /ucrt64/lib/gdk-pixbuf-2.0/* staging/lib/gdk-pixbuf-2.0/
+          fi
+
+          mkdir -p staging/share/locale
+          cp -r /ucrt64/share/locale/* staging/share/locale/
+
+          mkdir -p staging/share/glib-2.0/schemas
+          cp -r /ucrt64/share/glib-2.0/schemas/* staging/share/glib-2.0/schemas/
+        
+          mv -r staging/msys64/ucrt64/* staging/
+
+          rm -rd staging/msys64
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: planify-win
+          path: staging/*
