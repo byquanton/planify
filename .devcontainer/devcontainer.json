@@ -1,0 +1,11 @@
+{
+    "name": "Debian",
+    "image": "mcr.microsoft.com/devcontainers/base:bookworm",
+    "forwardPorts": [6080, 5901],
+    // HACK: Remove adding the trixie repository when a trixie based image gets released
+    "postCreateCommand": "echo 'deb http://deb.debian.org/debian trixie main' | sudo tee /etc/apt/sources.list.d/trixie.list > /dev/null && echo 'Package: *\\nPin: release n=trixie\\nPin-Priority: 100' | sudo tee /etc/apt/preferences.d/trixie > /dev/null && sudo apt-get update && sudo apt-get install -y -t trixie valac meson ninja-build libgtk-4-dev libadwaita-1-dev libgee-0.8-dev libgranite-7-dev libjson-glib-dev libecal2.0-dev libsoup-3.0-dev libwebkitgtk-6.0-dev libgtksourceview-5-dev libportal-dev libportal-gtk4-dev",
+    "features": {
+        "ghcr.io/devcontainers/features/desktop-lite:1": {}
+    },
+    "runArgs": ["--shm-size=4g"]
+}
