@@ -118,10 +118,15 @@ core_deps = [
   libsoup_dep,
   gtksourceview_dep,
   libical_dep,
-  libecal_dep,
   libgxml_dep,
   libsecret_dep
 ]
+
+if get_option('evolution')
+    if libecal_dep.found()
+        deps += libecal_dep
+    endif
+endif
 
 core_lib = shared_library(
     'planify',
