@@ -21,8 +21,6 @@ libadwaita_dep = dependency('libadwaita-1', version: '>= 1.7.0')
 gtksourceview_dep = dependency('gtksourceview-5')
 json_dep = dependency('json-glib-1.0')
 libical_dep = dependency('libical-glib')
-libportal_dep = dependency('libportal', required: true)
-libportal_gtk4_dep = dependency('libportal-gtk4', required: true)
 libgxml_dep = dependency('gxml-0.20')
 libsecret_dep = dependency('libsecret-1')
 m_dep = meson.get_compiler('c').find_library('m', required : false)
@@ -35,6 +33,17 @@ if get_option('webkit')
     endif
 endif
 
+if get_option('portal')  
+    libportal_dep = dependency('libportal', required: true)
+    libportal_gtk4_dep = dependency('libportal-gtk4', required: true)
+    add_project_arguments('-D', 'WITH_LIBPORTAL', language: 'vala')
+    if not libportal_dep.found()
+        error('libportal requested but not found')
+    endif
+    if not libportal_gtk4_dep.found()
+        error('libportal-gtk4 requested but not found')
+    endif
+endif
 
 
 if get_option('evolution')    
