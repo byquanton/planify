@@ -1,0 +1,12 @@
+{
+    "configurations": [
+    {
+        "type": "lldb",
+        "request": "launch",
+        "name": "Launch",
+        "program": "/usr/local/bin/io.github.alainm23.planify",
+        "args": [],
+        "cwd": "${workspaceFolder}"
+    }
+    ]
+}

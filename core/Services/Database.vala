@@ -774,7 +774,10 @@ public class Services.Database : GLib.Object {
         set_parameter_int (stmt, "$child_order", source.child_order);
         set_parameter_bool (stmt, "$sync_server", source.sync_server);
         set_parameter_str (stmt, "$last_sync", source.last_sync);
-        set_parameter_str (stmt, "$data", source.data.to_json ());
+
+        if (source.data != null) {
+            set_parameter_str (stmt, "$data", source.data.to_json ());
+        }
 
         if (stmt.step () != Sqlite.DONE) {
             warning ("Error: %d: %s", db.errcode (), db.errmsg ());

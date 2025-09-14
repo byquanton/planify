@@ -174,7 +174,7 @@ public class MainWindow : Adw.ApplicationWindow {
 
             if (Services.Store.instance ().is_database_empty ()) {
                 Util.get_default ().create_inbox_project ();
-                Util.get_default ().create_tutorial_project ();
+                // Util.get_default ().create_tutorial_project ();
                 Util.get_default ().create_default_labels ();
             }
 
@@ -183,7 +183,7 @@ public class MainWindow : Adw.ApplicationWindow {
             Services.Notification.get_default ();
             Services.TimeMonitor.get_default ().init_timeout ();
 
-            go_homepage ();
+            // go_homepage ();
 
             Services.Store.instance ().project_deleted.connect (valid_view_removed);
             Services.Store.instance ().project_archived.connect (valid_view_removed);

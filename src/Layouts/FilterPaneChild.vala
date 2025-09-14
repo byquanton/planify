@@ -131,7 +131,7 @@ public class Layouts.FilterPaneChild : Gtk.FlowBoxChild {
         }
         
         signals_map[Services.Database.get_default ().opened.connect (() => {
-            init_badge_count ();
+            // init_badge_count ();
         })] = Services.Database.get_default ();
     }
 
