@@ -228,7 +228,9 @@ public class Layouts.Sidebar : Adw.Bin {
             add_source_row (source);
         }
 
-        check_for_updates.begin ();
+        #if CHECK_FOR_UPDATES
+                check_for_updates.begin ();
+        #endif
     }
 
     private void add_source_row (Objects.Source source) {
