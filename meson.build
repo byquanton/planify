@@ -38,6 +38,10 @@ if libspelling.found ()
   add_project_arguments(['--define=WITH_LIBSPELLING'], language: 'vala')
 endif
 
+if get_option('check_for_updates')
+    add_project_arguments('-D', 'CHECK_FOR_UPDATES', language: 'vala')
+endif
+
 if get_option('portal')
     libportal_dep = dependency('libportal', required: true)
     libportal_gtk4_dep = dependency('libportal-gtk4', required: true)
