@@ -44,6 +44,10 @@ public class Layouts.ItemRow : Layouts.ItemBase {
     private Gtk.Revealer content_entry_revealer;
     private Gtk.Box content_box;
 
+    #if WITH_LIBSPELLING
+    private Spelling.TextBufferAdapter? spelling_adapter = null;
+    #endif
+
     private Gtk.Label due_label;
     private Gtk.Box due_box;
     private Gtk.Label repeat_label;
@@ -417,15 +421,6 @@ public class Layouts.ItemRow : Layouts.ItemBase {
 #if WITH_LIBSPELLING
         var source_buffer = new GtkSource.Buffer (null);
         content_textview.buffer = source_buffer;
-        
-        var adapter = new Spelling.TextBufferAdapter (source_buffer, Spelling.Checker.get_default ());
-        content_textview.extra_menu = adapter.get_menu_model ();
-        content_textview.insert_action_group ("spelling", adapter);
-        adapter.enabled = Services.Settings.get_default ().settings.get_boolean ("spell-checking-enabled");
-        
-        Services.Settings.get_default ().settings.changed["spell-checking-enabled"].connect (() => {
-            adapter.enabled = Services.Settings.get_default ().settings.get_boolean ("spell-checking-enabled");
-        });
 #endif
 
         content_entry_revealer = new Gtk.Revealer () {
@@ -543,6 +538,9 @@ public class Layouts.ItemRow : Layouts.ItemBase {
         signals_map[detail_revealer.notify["reveal-child"].connect (() => {
             if (detail_revealer.reveal_child) {
                 build_detail_widgets ();
+                #if WITH_LIBSPELLING
+                init_spelling_adapter ();
+                #endif
             }
         })] = detail_revealer;
 
@@ -2091,6 +2089,26 @@ public class Layouts.ItemRow : Layouts.ItemBase {
             }
         })] = attachments;
     }
+
+    #if WITH_LIBSPELLING
+    private void init_spelling_adapter () {
+        if (spelling_adapter != null) return;
+
+        var source_buffer = content_textview.buffer as GtkSource.Buffer;
+        if (source_buffer == null) return;
+
+        spelling_adapter = new Spelling.TextBufferAdapter (source_buffer, Spelling.Checker.get_default ());
+        content_textview.extra_menu = spelling_adapter.get_menu_model ();
+        content_textview.insert_action_group ("spelling", spelling_adapter);
+        spelling_adapter.enabled = Services.Settings.get_default ().settings.get_boolean ("spell-checking-enabled");
+
+        Services.Settings.get_default ().settings.changed["spell-checking-enabled"].connect (() => {
+            if (spelling_adapter != null) {
+                spelling_adapter.enabled = Services.Settings.get_default ().settings.get_boolean ("spell-checking-enabled");
+            }
+        });
+    }
+    #endif
 
     private void destroy_markdown_editor () {
         if (markdown_editor == null) {
