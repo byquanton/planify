@@ -20,10 +20,19 @@
  */
 
 public class Dialogs.QuickFind.QuickFind : Adw.Dialog {
+    private const int ITEMS_PER_PAGE = 100;
+
     private Gtk.SearchEntry search_entry;
     private Gtk.ListBox listbox;
     private Gee.ArrayList<Dialogs.QuickFind.QuickFindItem> items = new Gee.ArrayList<Dialogs.QuickFind.QuickFindItem> ();
     private Gee.HashMap<ulong, GLib.Object> signal_map = new Gee.HashMap<ulong, GLib.Object> ();
+    private int current_offset = 0;
+
+    private Gee.ArrayList<Objects.BaseObject> all_filters = new Gee.ArrayList<Objects.BaseObject> ();
+    private Gee.ArrayList<Objects.Project> all_projects = new Gee.ArrayList<Objects.Project> ();
+    private Gee.ArrayList<Objects.Section> all_sections = new Gee.ArrayList<Objects.Section> ();
+    private Gee.ArrayList<Objects.Item> all_items = new Gee.ArrayList<Objects.Item> ();
+    private Gee.ArrayList<Objects.Label> all_labels = new Gee.ArrayList<Objects.Label> ();
 
     public QuickFind () {
         Object (
@@ -131,6 +140,18 @@ public class Dialogs.QuickFind.QuickFind : Adw.Dialog {
             hide_destroy ();
         })] = cancel_button;
 
+        listbox_scrolled.get_vadjustment ().value_changed.connect (() => {
+            var adjustment = listbox_scrolled.get_vadjustment ();
+            var lower = adjustment.get_lower ();
+            var upper = adjustment.get_upper ();
+            var page_size = adjustment.get_page_size ();
+            var value = adjustment.get_value ();
+
+            if (value + page_size >= upper - 10) {
+                load_more_items ();
+            }
+        });
+
         closed.connect (() => {
             foreach (var entry in signal_map.entries) {
                 entry.value.disconnect (entry.key);
@@ -195,14 +216,21 @@ public class Dialogs.QuickFind.QuickFind : Adw.Dialog {
 
     private void search_changed () {
         if (search_entry.text.strip () != "") {
-            clean_results ();
-            search ();
+            current_offset = 0;
+            fetch_all_results ();
+            search (current_offset, ITEMS_PER_PAGE);
         } else {
             clean_results ();
         }
     }
 
-    private void search () {
+    private void fetch_all_results () {
+        all_filters.clear ();
+        all_projects.clear ();
+        all_sections.clear ();
+        all_items.clear ();
+        all_labels.clear ();
+
         Objects.BaseObject[] filters = {
             Objects.Filters.Inbox.get_default (),
             Objects.Filters.Today.get_default (),
@@ -221,27 +249,48 @@ public class Dialogs.QuickFind.QuickFind : Adw.Dialog {
             Objects.Filters.AllItems.get_default ()
         };
 
-        foreach (Objects.BaseObject object in filters) {
-            if (search_entry.text.down () in object.name.down () || search_entry.text.down () in object.keywords.down ()) {
-                var row = new Dialogs.QuickFind.QuickFindItem (object, search_entry.text);
-                listbox.append (row);
-                items.add (row);
+        foreach (var obj in filters) {
+            if (search_entry.text.down () in obj.name.down () || search_entry.text.down () in obj.keywords.down ()) {
+                all_filters.add (obj);
             }
         }
 
-        foreach (Objects.Project project in Services.Store.instance ().get_all_projects_by_search (search_entry.text)) {
+        all_projects.add_all (Services.Store.instance ().get_all_projects_by_search (search_entry.text));
+        all_sections.add_all (Services.Store.instance ().get_all_sections_by_search (search_entry.text));
+        all_items.add_all (Services.Store.instance ().get_all_items_by_search (search_entry.text));
+        all_labels.add_all (Services.Store.instance ().get_all_labels_by_search (search_entry.text));
+    }
+
+    private void search (int offset, int limit) {
+        if (offset == 0) {
+            clean_results ();
+        }
+
+        int start = offset;
+        int end = offset + limit;
+        for (int i = start; i < end && i < all_filters.size; i++) {
+            var obj = all_filters[i];
+            var row = new Dialogs.QuickFind.QuickFindItem (obj, search_entry.text);
+            listbox.append (row);
+            items.add (row);
+        }
+
+        for (int i = start; i < end && i < all_projects.size; i++) {
+            var project = all_projects[i];
             var row = new Dialogs.QuickFind.QuickFindItem (project, search_entry.text);
             listbox.append (row);
             items.add (row);
         }
 
-        foreach (Objects.Section section in Services.Store.instance ().get_all_sections_by_search (search_entry.text)) {
+        for (int i = start; i < end && i < all_sections.size; i++) {
+            var section = all_sections[i];
             var row = new Dialogs.QuickFind.QuickFindItem (section, search_entry.text);
             listbox.append (row);
             items.add (row);
         }
 
-        foreach (Objects.Item item in Services.Store.instance ().get_all_items_by_search (search_entry.text)) {
+        for (int i = start; i < end && i < all_items.size; i++) {
+            var item = all_items[i];
             if (item.project != null) {
                 var row = new Dialogs.QuickFind.QuickFindItem (item, search_entry.text);
                 listbox.append (row);
@@ -249,11 +298,17 @@ public class Dialogs.QuickFind.QuickFind : Adw.Dialog {
             }
         }
 
-        foreach (Objects.Label label in Services.Store.instance ().get_all_labels_by_search (search_entry.text)) {
+        for (int i = start; i < end && i < all_labels.size; i++) {
+            var label = all_labels[i];
             var row = new Dialogs.QuickFind.QuickFindItem (label, search_entry.text);
             listbox.append (row);
             items.add (row);
         }
+    }
+
+    private void load_more_items () {
+        current_offset += ITEMS_PER_PAGE;
+        search (current_offset, ITEMS_PER_PAGE);
     }
 
     private Gtk.Widget get_placeholder () {
