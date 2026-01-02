@@ -119,7 +119,7 @@ public class Dialogs.QuickFind.QuickFind : Adw.Dialog {
             if (keyval == Gdk.Key.Escape) {
                 hide_destroy ();
             } else if (key == "Down") {
-                listbox.get_row_at_index (0).grab_focus ();
+                list_view.grab_focus ();
                 return true;
             }
 
