@@ -22,7 +22,10 @@
 public class Dialogs.QuickFind.QuickFind : Adw.Dialog {
     private Gtk.SearchEntry search_entry;
     private Gtk.ListView list_view;
+    private Gtk.ScrolledWindow list_view_scrolled;
     private ListStore list_store;
+    private Gtk.FilterListModel filter_model;
+    private Gtk.CustomFilter custom_filter;
     private Gtk.SingleSelection selection_model;
     private Gtk.SignalListItemFactory list_item_factory;
     private Gtk.SignalListItemFactory header_factory;
@@ -69,25 +72,45 @@ public class Dialogs.QuickFind.QuickFind : Adw.Dialog {
         };
 
         list_store = new GLib.ListStore (typeof (QuickFindItem));
-        selection_model = new Gtk.SingleSelection (list_store);
-        list_item_factory = new Gtk.SignalListItemFactory ();
-        list_item_factory.setup.connect (QuickFindItem.on_list_item_setup);
-        list_item_factory.bind.connect (QuickFindItem.on_list_item_bind);
-        list_item_factory.unbind.connect (QuickFindItem.on_list_item_unbind);
-        list_item_factory.teardown.connect (QuickFindItem.on_list_item_teardown);
 
-        header_factory = new Gtk.SignalListItemFactory ();
-        header_factory.setup.connect (QuickFindItem.on_header_setup);
-        header_factory.bind.connect (QuickFindItem.on_header_bind);
+        custom_filter = new Gtk.CustomFilter ((obj) => {
+            var item = (QuickFindItem) obj;
+            if (search_entry.text.strip () == "") {
+                return false;
+            }
+
+            var matches = item_matches_search (item, search_entry.text.down ());
+            return matches;
+        });
+
+        filter_model = new Gtk.FilterListModel (list_store, custom_filter) {
+            incremental = false
+        };
+
+        var sort_model = new Gtk.SortListModel (filter_model, new QuickFindSectionSorter ());
+        sort_model.section_sorter = new QuickFindSectionSorter ();
+
+        selection_model = new Gtk.SingleSelection (sort_model);
+        list_item_factory = QuickFindFactory.create_list_item_factory ();
+        header_factory = QuickFindFactory.create_header_factory ();
 
         list_view = new Gtk.ListView (selection_model, list_item_factory) {
             hexpand = true,
             vexpand = true,
+            css_classes = { "listbox-background" },
             margin_bottom = 6
         };
         list_view.header_factory = header_factory;
 
-        var list_view_scrolled = new Gtk.ScrolledWindow () {
+        list_view.activate.connect ((position) => {
+            var item = selection_model.get_item (position);
+            if (item != null) {
+                var quick_find_item = (QuickFindItem) item;
+                activate_item (quick_find_item);
+            }
+        });
+
+        list_view_scrolled = new Gtk.ScrolledWindow () {
             hexpand = true,
             vexpand = true,
             hscrollbar_policy = Gtk.PolicyType.NEVER,
@@ -106,9 +129,23 @@ public class Dialogs.QuickFind.QuickFind : Adw.Dialog {
         default_widget = search_entry;
         Services.EventBus.get_default ().disconnect_typing_accel ();
 
+        populate_store ();
+
         search_entry.search_changed.connect (() => {
             search_changed ();
         });
+
+        var click_gesture = new Gtk.GestureClick ();
+        click_gesture.pressed.connect (() => {
+            var selected = selection_model.get_selected ();
+            if (selected != Gtk.INVALID_LIST_POSITION) {
+                var item = selection_model.get_item (selected);
+                if (item != null) {
+                    activate_item ((QuickFindItem) item);
+                }
+            }
+        });
+        list_view.add_controller (click_gesture);
 
         var list_view_controller_key = new Gtk.EventControllerKey ();
         list_view.add_controller (list_view_controller_key);
@@ -160,9 +197,12 @@ public class Dialogs.QuickFind.QuickFind : Adw.Dialog {
             }
         } else if (key == "Down") {
         } else if (key == "Enter" || key == "Return" || key == "KP_Enter") {
-            var selected_item = (Gtk.ListItem) selection_model.get_selected_item ();
-            if (selected_item != null) {
-                row_activated (selected_item);
+            var selected = selection_model.get_selected ();
+            if (selected != Gtk.INVALID_LIST_POSITION) {
+                var item = selection_model.get_item (selected);
+                if (item != null) {
+                    activate_item ((QuickFindItem) item);
+                }
             }
         } else if (key == "BackSpace") {
             if (!search_entry.has_focus && search_entry.text.length > 0) {
@@ -178,7 +218,7 @@ public class Dialogs.QuickFind.QuickFind : Adw.Dialog {
                 if (c.isprint ()) {
                     search_entry.grab_focus ();
                     int pos = search_entry.text.length;
-                    search_entry.insert_text (c.to_string (), -1, ref pos);
+                    search_entry.insert_text (c.to_string (), - 1, ref pos);
                     search_entry.set_position (pos);
                     return true;
                 }
@@ -189,16 +229,26 @@ public class Dialogs.QuickFind.QuickFind : Adw.Dialog {
     }
 
     private void search_changed () {
-        if (search_entry.text.strip () != "") {
-            search ();
-        } else {
-            clean_results ();
+        var n_items = list_store.get_n_items ();
+        for (uint i = 0; i < n_items; i++) {
+            var item = (QuickFindItem) list_store.get_item (i);
+            item.pattern = search_entry.text;
+        }
+
+        custom_filter.changed (Gtk.FilterChange.DIFFERENT);
+
+        var has_results = filter_model.get_n_items () > 0;
+        stack.set_visible_child_name (has_results ? "list" : "placeholder");
+
+        if (has_results) {
+            Idle.add (() => {
+                list_view_scrolled.vadjustment.set_value (0);
+                return GLib.Source.REMOVE;
+            });
         }
     }
 
-    private void search () {
-        list_store.remove_all ();
-
+    private void populate_store () {
         Objects.BaseObject[] filters = {
             Objects.Filters.Inbox.get_default (),
             Objects.Filters.Today.get_default (),
@@ -218,45 +268,50 @@ public class Dialogs.QuickFind.QuickFind : Adw.Dialog {
         };
 
         foreach (var obj in filters) {
-            if (search_entry.text.down () in obj.name.down () || search_entry.text.down () in obj.keywords.down ()) {
-                var item = new QuickFindItem (obj, search_entry.text);
-                list_store.append (item);
-            }
-        }
-
-        foreach (var project in Services.Store.instance ().get_all_projects_by_search (search_entry.text)) {
-            var item = new QuickFindItem (project, search_entry.text);
+            var item = new QuickFindItem (obj, "");
             list_store.append (item);
         }
 
-        foreach (var section in Services.Store.instance ().get_all_sections_by_search (search_entry.text)) {
-            var item = new QuickFindItem (section, search_entry.text);
+        foreach (var project in Services.Store.instance ().projects) {
+            var item = new QuickFindItem (project, "");
             list_store.append (item);
         }
 
-        foreach (var item_obj in Services.Store.instance ().get_all_items_by_search (search_entry.text)) {
+        foreach (var section in Services.Store.instance ().sections) {
+            var item = new QuickFindItem (section, "");
+            list_store.append (item);
+        }
+
+        foreach (var item_obj in Services.Store.instance ().items) {
             if (item_obj.project != null) {
-                var item = new QuickFindItem (item_obj, search_entry.text);
+                var item = new QuickFindItem (item_obj, "");
                 list_store.append (item);
             }
         }
 
-        foreach (var label in Services.Store.instance ().get_all_labels_by_search (search_entry.text)) {
-            var item = new QuickFindItem (label, search_entry.text);
+        foreach (var label in Services.Store.instance ().labels) {
+            var item = new QuickFindItem (label, "");
             list_store.append (item);
-        }
-
-        // Switch to the list view if there are items
-        if (list_store.get_n_items () > 0) {
-            stack.set_visible_child_name ("list");
-        } else {
-            stack.set_visible_child_name ("placeholder");
         }
     }
 
-    private void clean_results () {
-        list_store.remove_all ();
-        stack.set_visible_child_name ("placeholder");
+    private bool item_matches_search (QuickFindItem item, string search_text_lower) {
+        var base_object = item.base_object;
+        bool matches = false;
+
+        if (base_object.object_type == ObjectType.FILTER) {
+            var filter_name = base_object.name.down ();
+            matches = search_text_lower in filter_name ||
+            search_text_lower in base_object.keywords.down ();
+        } else if (base_object is Objects.Item) {
+            var item_obj = (Objects.Item) base_object;
+            var item_content = item_obj.content.down ();
+            matches = search_text_lower in item_content;
+        } else {
+            matches = search_text_lower in base_object.name.down ();
+        }
+
+        return matches;
     }
 
     private Gtk.Widget get_placeholder () {
@@ -285,8 +340,7 @@ public class Dialogs.QuickFind.QuickFind : Adw.Dialog {
         return placeholder_grid;
     }
 
-    private void row_activated (Gtk.ListItem list_item) {
-        var item = (QuickFindItem) list_item.item;
+    private void activate_item (QuickFindItem item) {
         var base_object = item.base_object;
 
         if (base_object.object_type == ObjectType.PROJECT) {
