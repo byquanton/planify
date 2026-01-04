@@ -305,6 +305,7 @@ public class Services.CalDAV.CalDAVClient : Services.CalDAV.WebDAVClient {
         project.freeze_update = true;
 
         int index = 0;
+        var items_list = new Gee.ArrayList<Objects.Item> ();
 
         Idle.add (() => {
             var response = responses[index];
@@ -320,19 +321,8 @@ public class Services.CalDAV.CalDAVClient : Services.CalDAV.WebDAVClient {
                     continue;
                 }
 
-                string? parent_id = Util.find_string_value ("RELATED-TO", calendar_data.text_content);
                 Objects.Item item = new Objects.Item.from_vtodo (calendar_data.text_content, get_absolute_url (href), project.id);
-
-                if (parent_id != null && parent_id != "") {
-                    Objects.Item ? parent_item = Services.Store.instance ().get_item (parent_id);
-                    if (parent_item != null) {
-                        parent_item.add_item_if_not_exists (item);
-                    } else {
-                        project.add_item_if_not_exists (item);
-                    }
-                } else {
-                    project.add_item_if_not_exists (item);
-                }
+                items_list.add (item);
             }
 
             if (progress_callback != null && index % 10 == 0) {
@@ -345,6 +335,7 @@ public class Services.CalDAV.CalDAVClient : Services.CalDAV.WebDAVClient {
                 if (progress_callback != null) {
                     progress_callback (responses.size, responses.size, _ ("Loaded tasks for %s…").printf (project.name));
                 }
+                project.add_items_batched (items_list);
                 Idle.add ((owned) callback);
                 return false;
             }
