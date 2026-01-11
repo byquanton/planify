@@ -14,8 +14,8 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: Weblate 5.15.1\n"
 
-#: core/Enum.vala:168 src/Dialogs/Preferences/Pages/Backup.vala:3522
-#: src/Dialogs/Preferences/Pages/General.vala:13
+#: core/Enum.vala:168 src/Dialogs/Preferences/Pages/Backup.vala:352
+#: src/Dialogs/Preferences/Pages/General.vala:55
 msgid "Projects"
 msgstr "Projekte"
 
