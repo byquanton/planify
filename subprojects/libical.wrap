@@ -1,0 +1,9 @@
+[wrap-git]
+directory = libical
+url = https://github.com/libical/libical.git
+revision = bcc207f8db369e5677050e77bb0d571192091aee
+depth = 1
+method = cmake
+
+[provide]
+dependency_names = libical-glib

@@ -1,180 +1,82 @@
-[![Please do not theme this app](https://stopthemingmy.app/badge.svg)](https://stopthemingmy.app)
-[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
-<a href="https://hosted.weblate.org/engage/planner/">
-<img src="https://hosted.weblate.org/widget/planner/io-github-alainm23-planify/svg-badge.svg" alt="Estado de la traducción" />
-</a>
+# Planify on Android
 
-<div align="center">
-  <span align="center"> <img width="128" height="128" class="center" src="data/icons/hicolor/scalable/apps/io.github.alainm23.planify.svg" alt="Planify Icon"></span>
-  <h1 align="center">Planify</h1>
-  <h3 align="center">Never worry about forgetting things again</h3>
-</div>
+Current State: libical uses cmake and it doesn't like the pixiewood/meson env
 
-![Planify Screenshot](https://raw.githubusercontent.com/alainm23/planify/main/data/resources/screenshot/screenshot-03.png)
-
-## ✨ Features
-
-### 🎯 Core Functionality
-- **🚀 Modern Interface**: Clean, intuitive design that gets out of your way
-- **🤚 Drag & Drop**: Effortlessly organize tasks and projects with natural gestures
-- **💯 Progress Tracking**: Visual indicators show completion status at a glance
-- **📂 Smart Organization**: Group tasks into sections for better workflow management
-- **📅 Calendar Integration**: Visualize your schedule and plan your day effectively
-- **⏰ Flexible Reminders**: Set multiple reminders per task - never miss a deadline
-- **🌙 Dark Mode**: Seamless integration with system themes
-- **🔍 Quick Search**: Find anything instantly with powerful search capabilities
-
-### ☁️ Cloud Synchronization
-- **Todoist Integration**: Full sync with your existing Todoist account
-- **Nextcloud Support**: Keep your data private with self-hosted solutions
-- **Offline Mode**: Work without internet - sync when you're back online
-- **Cross-Platform**: Access your tasks from anywhere
-
-*Note: Planify is not created by, affiliated with, or supported by Doist*
-
-### 💎 Advanced Features
-- **🔔 Smart Notifications**: Never miss important tasks
-- **🔁 Recurring Tasks**: Set up repeating schedules with flexible patterns
-- **📊 Analytics**: Track your productivity over time
-- **🏷️ Labels & Filters**: Organize and find tasks with custom labels
-- **📎 Attachments**: Add files and links to your tasks
-- **🎨 Customization**: Personalize colors and themes
-
-## 📥 Installation
-
-### 🏪 Official Distribution
-
-<a href="https://flathub.org/apps/details/io.github.alainm23.planify" rel="noreferrer noopener" target="_blank">
-  <img loading="lazy" draggable="false" width='240' alt='Download on Flathub' src='https://dl.flathub.org/assets/badges/flathub-badge-en.png' />
-</a>
-
-### 🛠 Build from Source
-
-<details>
-<summary><strong>System Requirements & Dependencies</strong></summary>
-
-**Minimum Requirements:**
-- Linux distribution with GTK4 support
-- 2GB RAM
-- 500MB disk space
-
-**Build Dependencies:**
-
-| Package | Version |
-|---------|---------|
-| meson | ≥ 0.56 |
-| valac | ≥ 0.48 |
-| gio-2.0 | ≥ 2.80.3 |
-| glib-2.0 | ≥ 2.80.3 |
-| gee-0.8 | ≥ 0.20.6 |
-| gtk4 | ≥ 4.14.4 |
-| libsoup-3.0 | ≥ 3.4.4 |
-| sqlite3 | ≥ 3.45.1 |
-| libadwaita-1 | ≥ 1.5.3 |
-| json-glib-1.0 | ≥ 1.8.0 |
-| libecal-2.0 | ≥ 3.52.4 |
-| libedataserver-1.2 | ≥ 3.52.4 |
-| libportal | ≥ 0.7.1 |
-| libportal-gtk4 | ≥ 0.7.1 |
-| gxml-0.20 | ≥ 0.21.0 |
-| libsecret-1 | ≥ 0.21.4 |
-| libspelling-dev | latest |
-| gtksourceview-5 | 5.12.1 |
-| libicu-dev | ≥ 76.1 |
-
-**Install Dependencies:**
-
-**Fedora/RHEL:**
-```bash
-sudo dnf install vala meson ninja-build gtk4-devel libadwaita-devel libgee-devel libsoup3-devel libportal-devel libportal-gtk4-devel evolution-devel libspelling-devel gtksourceview5-devel libicu-devel
+```
+pwd/to/gtk-android-builder/pixiewood -v prepare -a ~/.local/share/JetBrains/Toolbox/apps/android-studio -s ~/Android/Sdk/ build-aux/android/io.github.alainm23.planify.xml
 ```
 
-**Ubuntu/Debian:**
-```bash
-sudo apt install valac meson ninja-build libgtk-4-dev libadwaita-1-dev libgee-0.8-dev libjson-glib-dev libecal2.0-dev libsoup-3.0-dev libportal-dev libportal-gtk4-dev libspelling-1-dev libgtksourceview-5-dev libicu-dev
+
+Logs
 ```
+Run-time dependency libical-glib found: NO (tried pkgconfig and cmake)
+Looking for a fallback subproject for the dependency libical-glib
 
-</details>
+Executing subproject libical method cmake 
 
-**Build Instructions:**
+libical| Found CMake: /usr/bin/cmake (3.31.11)
 
-```bash
-# Clone the repository
-git clone https://github.com/alainm23/planify.git
-cd planify
+| Configuring the build directory with CMake version 3.31.11
+| Running CMake with: -G Ninja -DCMAKE_INSTALL_PREFIX=/ -DCMAKE_BUILD_TYPE=Debug
+|   - build directory:          /home/me/Projects/planify-android/.pixiewood/bin-x86_64/subprojects/libical/__CMake_build
+|   - source directory:         /home/me/Projects/planify-android/subprojects/libical
+|   - toolchain file:           /home/me/Projects/planify-android/.pixiewood/bin-x86_64/subprojects/libical/__CMake_build/CMakeMesonToolchainFile.cmake
+|   - preload file:             /usr/lib/python3.14/site-packages/mesonbuild/cmake/data/preload.cmake
+|   - trace args:               --trace-expand --trace-format=json-v1 --no-warn-unused-cli --trace-redirect=cmake_trace.txt
+|   - disabled policy warnings: [CMP0025, CMP0047, CMP0056, CMP0060, CMP0065, CMP0066, CMP0067, CMP0082, CMP0089, CMP0102]
 
-# Configure build
-meson build --prefix=/usr
+| CMake Deprecation Warning at CMakeLists.txt:91 (cmake_minimum_required):
+| Compatibility with CMake < 3.10 will be removed from a future version of
+| CMake.
 
-# Compile
-cd build
-ninja
+| Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+| to tell CMake that the project requires at least <min> but has been updated
+| to work with policies introduced by <max> or earlier.
 
-# Install
-sudo ninja install
+| Put cmake in trace mode, but with variables expanded.
+| Put cmake in trace mode and sets the trace output format.
+| Not searching for unused variables given on the command line.
+| Put cmake in trace mode and redirect trace output to a file instead of stderr.
+| Trace will be written to cmake_trace.txt
 
-# Run
-io.github.alainm23.planify
+| CMake Error at /usr/share/cmake/Modules/Platform/Android-Determine.cmake:124 (message):
+| The value of CMAKE_SYSROOT:
+
+| /home/me/Android/Sdk/ndk/magisk/toolchains/llvm/prebuilt/linux-x86_64/sysroot/
+
+| does not match any of the forms:
+
+| <ndk>/platforms/android-<api>/arch-<arch>
+| <standalone-toolchain>/sysroot
+
+| where:
+
+| <ndk>  = Android NDK directory (with forward slashes)
+| <api>  = Android API version number (decimal digits)
+| <arch> = Android ARCH name (lower case)
+| <standalone-toolchain> = Path to standalone toolchain prefix
+
+| Call Stack (most recent call first):
+| /usr/share/cmake/Modules/CMakeDetermineSystem.cmake:184 (include)
+| CMakeLists.txt:92 (project)
+
+
+| CMake Error: CMake was unable to find a build program corresponding to "Ninja".  CMAKE_MAKE_PROGRAM is not set.  You probably need to select a different build tool.
+| -- Configuring incomplete, errors occurred!
+
+libical| CMake configuration: FAILED
+
+meson.build:47:14: ERROR: Failed to configure the CMake subproject: The value of CMAKE_SYSROOT:
+   /home/me/Android/Sdk/ndk/magisk/toolchains/llvm/prebuilt/linux-x86_64/sysroot/
+ does not match any of the forms:
+   <ndk>/platforms/android-<api>/arch-<arch>
+   <standalone-toolchain>/sysroot
+ where:
+   <ndk>  = Android NDK directory (with forward slashes)
+   <api>  = Android API version number (decimal digits)
+   <arch> = Android ARCH name (lower case)
+   <standalone-toolchain> = Path to standalone toolchain prefix
+
+
+A full log can be found at /home/me/Projects/planify-android/.pixiewood/bin-x86_64/meson-logs/meson-log.txt
 ```
-
-### 🏗️ Development Setup
-
-**Using GNOME Builder:**
-1. Install [GNOME Builder](https://apps.gnome.org/Builder/)
-2. Clone this repository
-3. Open the project in GNOME Builder
-4. Click "Run" to build and test
-
-## 🤝 Contributing
-
-We welcome contributions! Here's how you can help:
-
-### 🐛 Bug Reports & Feature Requests
-- Check [existing issues](https://github.com/alainm23/planify/issues) first
-- Use our issue templates for better communication
-- Include system information and steps to reproduce
-
-### 💻 Code Contributions
-- Read our [Architecture Guide](ARCHITECTURE.md)
-- Review our [AI Policy](AI_POLICY.md) for guidelines on AI-assisted contributions
-- Fork the repository and create a feature branch
-- Follow our coding standards and commit message format
-- Submit a pull request with a clear description
-
-### 🌍 Translations
-Help make Planify available in your language:
-
-- **Weblate (Recommended)**: [Join our translation project](https://hosted.weblate.org/engage/planner/)
-- **Manual**: Check our [Translation Guide](po/README.md)
-
-## 📋 Code of Conduct
-
-Planify follows the [GNOME Code of Conduct](https://conduct.gnome.org/). We are committed to providing a welcoming and inclusive environment for all contributors.
-
-**Our Principles:**
-- **Be friendly** - Use welcoming and inclusive language
-- **Be empathetic** - Respect differing viewpoints and experiences  
-- **Be respectful** - Disagree politely and constructively
-- **Be considerate** - Remember that decisions often involve competing priorities
-- **Be patient** - Help others learn and grow
-- **Be concise** - Read discussions before commenting
-
-## 💝 Support the Project
-
-If you find Planify useful, consider supporting its development:
-
-<div align="center">
-
-[![Patreon](https://img.shields.io/badge/Patreon-F96854?style=for-the-badge&logo=patreon&logoColor=white)](https://www.patreon.com/alainm23)
-[![PayPal](https://img.shields.io/badge/PayPal-00457C?style=for-the-badge&logo=paypal&logoColor=white)](https://www.paypal.me/alainm23)
-[![Ko-fi](https://img.shields.io/badge/Ko--fi-F16061?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/alainm23)
-[![Liberapay](https://img.shields.io/badge/Liberapay-F6C915?style=for-the-badge&logo=liberapay&logoColor=black)](https://liberapay.com/Alain)
-
-</div>
-
-<div align="center">
-  <strong>Made with 💗 in Perú</strong>
-  <br><br>
-  <img src="https://img.shields.io/github/stars/alainm23/planify?style=social" alt="GitHub stars">
-  <img src="https://img.shields.io/github/forks/alainm23/planify?style=social" alt="GitHub forks">
-</div>

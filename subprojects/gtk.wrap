@@ -1,0 +1,7 @@
+[wrap-git]
+url = https://gitlab.gnome.org/GNOME/gtk.git
+revision = c65b8e9d681a36a9a780115c4bda2a278e0cfc8d
+depth = 1
+
+[provide]
+dependency_names = gtk4
