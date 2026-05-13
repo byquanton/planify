@@ -26,7 +26,6 @@ endif
 sources = files(
   'App.vala',
   'MainWindow.vala',
-
   'Objects/Backup.vala',
   'Services/ActionManager.vala',
   'Services/Api.vala',
