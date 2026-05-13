@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<app xmlns="https://sp1rit.arpa/pixiewood/">
+    <metainfo>
+
+    </metainfo>
+    <style>
+        <theme name="adw" />
+        <icon type="generate">
+            <drawable path="src://data/icons/hicolor/scalable/apps/io.github.alainm23.planify.svg" scale=".66" target="foreground"
+                type="svg" />
+            <color target="background">#FFFFFF</color>
+            <drawable target="monochrome" scale=".5" type="svg" path="src://data/icons/hicolor/symbolic/apps/io.github.alainm23.planify-symbolic.svg"/>
+        </icon>
+    </style>
+    <dependencies>
+        <glib>
+            <patch>hack</patch>
+        </glib>
+    </dependencies>
+    <build target="io.github.alainm23.planify">
+        <configure-options>
+            <option>-Dspelling=disabled</option>
+            <option>-Dportal=false</option>
+            <option>-Devolution=false</option>
+            <option>-Dlibadwaita:introspection=disabled</option>
+            <option>-Dlibadwaita:tests=false</option>
+            <option>-Dlibadwaita:examples=false</option>
+            <option>-Dlibadwaita:documentation=false</option>
+            <option>-Dgtk:introspection=disabled</option>
+            <option>-Dgtk:media-gstreamer=disabled</option>
+            <option>-Dlibsoup:introspection=disabled</option>
+            <option>-Dlibsoup:docs=disabled</option>
+            <option>-Dlibsoup:tests=false</option>
+            <option>-Dlibsoup:tls_check=true</option>
+            <option>-Djson-glib:introspection=disabled</option>
+            <option>-Djson-glib:documentation=disabled</option>
+            <option>-Djson-glib:tests=false</option>
+            <option>-Dgtksourceview-5:introspection=disabled</option>
+            <option>-Dgtksourceview-5:documentation=disabled</option>
+        </configure-options>
+        <architectures>
+            <arch>x86_64</arch>
+        </architectures>
+    </build>
+</app>
