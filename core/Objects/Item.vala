@@ -26,7 +26,7 @@ public class Objects.Item : Objects.BaseObject {
     public string completed_at { get; set; default = ""; }
     public string updated_at { get; set; default = ""; }
     public string calendar_event_uid { get; set; default = ""; }
-    public string deadline_date { get; set; default = ""; }  
+    public string deadline_date { get; set; default = ""; }
 
     string _section_id = "";
     public string section_id {
@@ -1319,7 +1319,11 @@ public class Objects.Item : Objects.BaseObject {
                         }
                     }
 
+                    #if IS_LIBICAL4
+                    rrule.set_by_array (ICal.RecurrenceByRule.BY_DAY, values);
+                    #else
                     rrule.set_by_day_array (values);
+                    #endif
                 } else if (due.recurrency_type == RecurrencyType.EVERY_MONTH) {
                     rrule.set_freq (ICal.RecurrenceFrequency.MONTHLY_RECURRENCE);
                 } else if (due.recurrency_type == RecurrencyType.EVERY_YEAR) {

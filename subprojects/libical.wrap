@@ -1,7 +1,7 @@
 [wrap-git]
 directory = libical
 url = https://github.com/libical/libical.git
-revision = bcc207f8db369e5677050e77bb0d571192091aee
+revision = 141d0d3503d59fa3b7dfd207653c503cd96f7736
 depth = 1
 method = cmake
 
